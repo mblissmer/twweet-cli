@@ -100,14 +100,22 @@ def process_or_store(tweet):
     print(json.dumps(tweet))
 
 def readTimeLine(api):
-    for status in tweepy.Cursor(api.home_timeline).items(10):
-        # process a single status
-        # print(status.text)
-        process_or_store(status._json)
+    print "{:<20} {:<140}".format('Name','Tweet')
+    for status in tweepy.Cursor(api.home_timeline, tweet_mode='extended').items(10):
+        sn = status._json['user']['screen_name'].encode("utf-8").replace('\n', ' ')
+        stat = status._json['full_textt'].encode("utf-8").replace('\n', ' ')
+        print "{:<20} {:<140}".format(sn, stat)
 
 def getFollowersList(api):
-    for friend in tweepy.Cursor(api.user_timeline).items(10):
-        process_or_store(friend._json)
+    print ""
+    print "Followers:"
+    for self in tweepy.Cursor(api.user_timeline).items(1):
+        user = self._json['user']['screen_name'].encode("utf-8").replace('\n', ' ')
+    for follower in api.followers(user):
+        name = follower._json['screen_name'].encode("utf-8").replace('\n', ' ')
+        # name = str(follower._json).encode("utf-8")
+        print name
+    # print api.followers(user)
 
 def getTweets(api):
     for tweet in tweepy.Cursor(api.user_timeline).items(10):
