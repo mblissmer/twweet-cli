@@ -1,8 +1,4 @@
-import tweepy
-import os
-import csv
-import json
-import errno
+import tweepy, os, csv, json, errno, datetime
 
 # Twitter API credentials
 cfg = {}
@@ -12,7 +8,7 @@ def get_api(cfg):
 
     auth = tweepy.OAuthHandler(cfg['consumer_key'], cfg['consumer_secret'])
     auth.set_access_token(cfg['access_token'], cfg['access_token_secret'])
-    return tweepy.API(auth)
+    return tweepy.API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True, compression=True)
 
 def get_all_tweets(screen_name):
     api = get_api(cfg)
@@ -96,30 +92,27 @@ def get_trending_topics():
     for item in trends:
         print item['name']
 
-def process_or_store(tweet):
-    print(json.dumps(tweet))
-
 def readTimeLine(api):
     print "{:<20} {:<140}".format('Name','Tweet')
     for status in tweepy.Cursor(api.home_timeline, tweet_mode='extended').items(10):
         sn = status._json['user']['screen_name'].encode("utf-8").replace('\n', ' ')
-        stat = status._json['full_textt'].encode("utf-8").replace('\n', ' ')
+        stat = status._json['full_text'].encode("utf-8").replace('\n', ' ')
         print "{:<20} {:<140}".format(sn, stat)
 
 def getFollowersList(api):
     print ""
     print "Followers:"
     for self in tweepy.Cursor(api.user_timeline).items(1):
-        user = self._json['user']['screen_name'].encode("utf-8").replace('\n', ' ')
-    for follower in api.followers(user):
+        userID = self._json['user']['screen_name'].encode("utf-8").replace('\n', ' ')
+    for follower in api.followers(userID):
         name = follower._json['screen_name'].encode("utf-8").replace('\n', ' ')
-        # name = str(follower._json).encode("utf-8")
         print name
-    # print api.followers(user)
 
 def getTweets(api):
-    for tweet in tweepy.Cursor(api.user_timeline).items(10):
-        process_or_store(tweet._json)
+    print "Your Tweets:"
+    for status in tweepy.Cursor(api.user_timeline, tweet_mode='extended').items(10):
+        stat = status._json['full_text'].encode("utf-8").replace('\n', ' ')
+        print stat
 
 def getCreds():
     if not os.path.isfile('data/creds.json'):
